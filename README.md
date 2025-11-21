@@ -1,73 +1,146 @@
-# Welcome to your Lovable project
+# Women's safety portal
 
-## Project info
+A web application for women's safety that provides SOS alerts, incident reporting, community support, and legal resources – all backed by Supabase.
 
-**URL**: https://lovable.dev/projects/591164e3-2ee0-47ce-b096-755e15c5624d
+Built with **Vite + React + TypeScript**, **Tailwind CSS**, **shadcn-ui**, and **Supabase**.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Core features
 
-**Use Lovable**
+- **Authentication & Profiles**
+  - Email/password sign up & login (Supabase Auth).
+  - User profile with name, phone, and emergency contact details.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/591164e3-2ee0-47ce-b096-755e15c5624d) and start prompting.
+- **Dashboard & SOS alerts**
+  - Large **SOS button** that captures the user's location using the browser Geolocation API.
+  - Reverse‑geocoded address via OpenStreetMap Nominatim.
+  - Creates `sos_alerts` records and tracks active alerts.
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Incident reporting**
+  - Submit detailed incident reports with type, description, location, and optional coordinates.
+  - Attach **evidence URLs** (stored in `evidence_urls` array).
+  - View a personal history of submitted incidents and their statuses.
 
-**Use your preferred IDE**
+- **Community forum + comments**
+  - Create posts and upvote existing ones.
+  - **Per‑post comments** using the `forum_comments` table.
+  - Realtime updates for new/updated posts via Supabase Realtime.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Legal resources**
+  - Browse categorized legal information from the `legal_resources` table (seeded via migrations).
+  - Search and filter by category.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Admin dashboard (role‑based)**
+  - Uses `user_roles` and `app_role` enum for RBAC.
+  - View stats: total users, total incidents, active SOS alerts.
+  - Manage incident statuses (new → under_review → resolved).
 
-Follow these steps:
+---
+
+## Tech stack
+
+- **Frontend**: Vite, React, TypeScript
+- **Styling**: Tailwind CSS, shadcn-ui
+- **Routing**: React Router
+- **State / data**: TanStack Query (React Query)
+- **Backend**: Supabase (Auth, Postgres, Realtime, RLS)
+
+---
+
+## Getting started
+
+### 1. Prerequisites
+
+- Node.js (v18+ recommended)
+- npm (comes with Node)
+- A Supabase project
+
+### 2. Clone and install
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
+cd safety-beacon
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 3. Supabase configuration
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Create a `.env` file in the project root (or update the existing one):
+
+```env
+VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="<your-anon-public-key>"
+VITE_SUPABASE_PROJECT_ID="<your-project-ref>"
+```
+
+You can find these values in the Supabase dashboard under **Project Settings → API**.
+
+### 4. Apply database schema
+
+This project ships with SQL migrations under `supabase/migrations/` which define:
+
+- Enums: `app_role`, `incident_type`, `incident_status`
+- Tables: `profiles`, `user_roles`, `incidents`, `sos_alerts`, `forum_posts`, `forum_comments`, `legal_resources`
+- Row Level Security (RLS) policies
+- Triggers for automatic profile creation and `updated_at` timestamps
+- Seed data for `legal_resources`
+
+To apply the schema, you can either:
+
+- Copy the contents of each migration file and run them in the **Supabase SQL editor**, or
+- Use the Supabase CLI to apply migrations to your project.
+
+After migrations are applied, new sign‑ups will automatically get a `profiles` row and the `user` role in `user_roles`.
+
+### 5. Run the app
+
+Start the Vite dev server:
+
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+By default, Vite will start on `http://localhost:8080` (see `vite.config.ts`).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+To create a production build:
 
-**Use GitHub Codespaces**
+```sh
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+To preview the production build locally:
 
-## What technologies are used for this project?
+```sh
+npm run preview
+```
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Available npm scripts
 
-## How can I deploy this project?
+- `npm run dev` – start development server
+- `npm run build` – build for production
+- `npm run preview` – preview the production build
+- `npm run lint` – run linting
 
-Simply open [Lovable](https://lovable.dev/projects/591164e3-2ee0-47ce-b096-755e15c5624d) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## Deployment
 
-Yes, you can!
+This is a standard Vite React app. You can deploy the contents of the `dist/` folder to any static hosting provider, for example:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Netlify
+- Vercel
+- GitHub Pages
+- Any static file host / S3 + CloudFront
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Ensure the following environment variables are configured on your hosting provider as **build/runtime env vars**:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PROJECT_ID`
+
+Then run the build command (`npm run build`) as part of your deployment pipeline.
+
