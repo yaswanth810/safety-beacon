@@ -51,13 +51,15 @@ const Forum = () => {
   }, []);
 
   const loadPosts = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("forum_posts")
-      .select(`
-        *,
-        profiles:user_id (full_name, avatar_url)
-      `)
+      .select("*")
       .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading posts:", error);
+      return;
+    }
 
     setPosts(data || []);
   };
@@ -171,20 +173,12 @@ const Forum = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      {post.profiles?.avatar_url ? (
-                        <img
-                          src={post.profiles.avatar_url}
-                          alt={post.profiles.full_name}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-5 h-5 text-primary" />
-                      )}
+                      <User className="w-5 h-5 text-primary" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{post.title}</CardTitle>
                       <CardDescription>
-                        by {post.profiles?.full_name || "Anonymous"} •{" "}
+                        by Anonymous •{" "}
                         {new Date(post.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>

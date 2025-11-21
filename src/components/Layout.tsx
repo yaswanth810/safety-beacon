@@ -112,7 +112,7 @@ const Layout = ({ children }: LayoutProps) => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="w-8 h-8 text-primary" />
-            <h1 className="text-xl font-bold">SafeGuard</h1>
+            <h1 className="text-xl font-bold">Women's safety portal</h1>
           </div>
 
           {/* Desktop Navigation */}

@@ -125,7 +125,7 @@ const Dashboard = () => {
       {/* Hero Section */}
       <div className="text-center space-y-4 py-8">
         <h1 className="text-4xl font-bold tracking-tight">
-          Welcome to SafeGuard
+          Welcome to Women's safety portal
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Your safety is our priority. Access emergency support, report incidents, and connect with a supportive community.

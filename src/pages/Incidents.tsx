@@ -21,6 +21,7 @@ const Incidents = () => {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [myIncidents, setMyIncidents] = useState<any[]>([]);
+  const [evidenceUrls, setEvidenceUrls] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -85,6 +86,11 @@ const Incidents = () => {
 
     setLoading(true);
     try {
+      const parsedEvidenceUrls = evidenceUrls
+        .split("\n")
+        .map((url) => url.trim())
+        .filter((url) => url.length > 0);
+
       const { error } = await supabase.from("incidents").insert({
         user_id: isAnonymous ? null : session.user.id,
         incident_type: incidentType as any,
@@ -94,6 +100,7 @@ const Incidents = () => {
         longitude: longitude || undefined,
         is_anonymous: isAnonymous,
         status: "new",
+        evidence_urls: parsedEvidenceUrls.length > 0 ? parsedEvidenceUrls : null,
       });
 
       if (error) throw error;
@@ -105,6 +112,7 @@ const Incidents = () => {
       setLatitude(null);
       setLongitude(null);
       setIsAnonymous(false);
+      setEvidenceUrls("");
       
       if (session) {
         loadMyIncidents(session.user.id);
@@ -186,6 +194,20 @@ const Incidents = () => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="evidence">Evidence Links</Label>
+              <Textarea
+                id="evidence"
+                placeholder="Paste any evidence URLs here (one per line, optional)"
+                value={evidenceUrls}
+                onChange={(e) => setEvidenceUrls(e.target.value)}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                These links might include cloud storage, screenshots, or other supporting material.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
               <div className="flex gap-2">
                 <Input
@@ -264,6 +286,28 @@ const Incidents = () => {
                       <MapPin className="w-3 h-3" />
                       {incident.location_address}
                     </p>
+                  )}
+                  {incident.evidence_urls && incident.evidence_urls.length > 0 && (
+                    <div className="mt-3 space-y-1">
+                      <div className="flex items-center gap-1 text-xs font-medium text-foreground">
+                        <FileText className="w-3 h-3" />
+                        <span>Evidence</span>
+                      </div>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        {incident.evidence_urls.map((url: string, index: number) => (
+                          <li key={index}>
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline"
+                            >
+                              {url}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </CardContent>
               </Card>

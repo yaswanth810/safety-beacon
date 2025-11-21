@@ -77,7 +77,7 @@ const Auth = () => {
           <div className="mx-auto w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-2">
             <Shield className="w-6 h-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">SafeGuard</CardTitle>
+          <CardTitle className="text-2xl font-bold">Women's safety portal</CardTitle>
           <CardDescription>
             Your trusted platform for safety and support
           </CardDescription>
