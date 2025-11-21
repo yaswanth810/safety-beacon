@@ -16,6 +16,7 @@ Built with **Vite + React + TypeScript**, **Tailwind CSS**, **shadcn-ui**, and *
   - Large **SOS button** that captures the user's location using the browser Geolocation API.
   - Reverse‑geocoded address via OpenStreetMap Nominatim.
   - Creates `sos_alerts` records and tracks active alerts.
+  - Shows the active SOS location on an embedded OpenStreetMap view.
 
 - **Incident reporting**
   - Submit detailed incident reports with type, description, location, and optional coordinates.
@@ -36,6 +37,10 @@ Built with **Vite + React + TypeScript**, **Tailwind CSS**, **shadcn-ui**, and *
   - View stats: total users, total incidents, active SOS alerts.
   - Manage incident statuses (new → under_review → resolved).
 
+- **Email notifications (via Edge Functions)**
+  - When SOS is activated, an email is sent to the account email with time, location, and map link.
+  - When admins update an incident status, an email is sent to the reporting user (non‑anonymous incidents).
+
 ---
 
 ## Tech stack
@@ -44,7 +49,8 @@ Built with **Vite + React + TypeScript**, **Tailwind CSS**, **shadcn-ui**, and *
 - **Styling**: Tailwind CSS, shadcn-ui
 - **Routing**: React Router
 - **State / data**: TanStack Query (React Query)
-- **Backend**: Supabase (Auth, Postgres, Realtime, RLS)
+- **Backend**: Supabase (Auth, Postgres, Realtime, RLS, Edge Functions)
+- **Email delivery**: Resend (or any compatible HTTP email API) called from Supabase Edge Functions
 
 ---
 
@@ -143,4 +149,30 @@ Ensure the following environment variables are configured on your hosting provid
 - `VITE_SUPABASE_PROJECT_ID`
 
 Then run the build command (`npm run build`) as part of your deployment pipeline.
+
+---
+
+## Email notifications (optional setup)
+
+The app includes Supabase Edge Functions that send emails for:
+
+- SOS activation (`notify-sos` function)
+- Incident status changes (`notify-incident-update` function)
+
+To enable them, configure **environment variables** for functions in the Supabase Dashboard under **Project Settings → Functions → Environment variables**:
+
+- `SUPABASE_URL` – your project URL
+- `SUPABASE_ANON_KEY` – anon/public key
+- `SUPABASE_SERVICE_ROLE_KEY` – service role key (keep secret)
+- `RESEND_API_KEY` – API key from Resend (or similar email service)
+- `NOTIFY_FROM_EMAIL` – sender address, e.g. `"Women's safety portal <no-reply@yourdomain.com>"`
+
+After setting env vars, deploy the functions from your local project (with Supabase CLI installed):
+
+```sh
+supabase functions deploy notify-sos --project-ref rfwaepfyqfvhrancqcxg
+supabase functions deploy notify-incident-update --project-ref rfwaepfyqfvhrancqcxg
+```
+
+Once deployed and configured, SOS activations and incident status changes will trigger the corresponding email notifications.
 
