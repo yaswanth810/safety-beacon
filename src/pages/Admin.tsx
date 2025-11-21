@@ -55,6 +55,13 @@ const Admin = () => {
       toast.error("Failed to update status");
     } else {
       toast.success("Status updated successfully");
+      const { error: notifyError } = await supabase.functions.invoke("notify-incident-update", {
+        body: { incidentId },
+      });
+
+      if (notifyError) {
+        console.error("Failed to send incident notification email:", notifyError);
+      }
       loadIncidents();
     }
   };

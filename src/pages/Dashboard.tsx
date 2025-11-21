@@ -94,6 +94,14 @@ const Dashboard = () => {
 
       setActiveAlert(alertData);
       toast.success("SOS Alert activated! Emergency contacts have been notified.");
+
+      const { error: notifyError } = await supabase.functions.invoke("notify-sos", {
+        body: { sosId: alertData.id },
+      });
+
+      if (notifyError) {
+        console.error("Failed to send SOS notification email:", notifyError);
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to activate SOS alert");
     } finally {
@@ -119,6 +127,29 @@ const Dashboard = () => {
       toast.success("SOS Alert deactivated");
     }
   };
+
+  const getAlertMapUrl = () => {
+    if (!activeAlert || !activeAlert.latitude || !activeAlert.longitude) {
+      return null;
+    }
+
+    const lat = Number(activeAlert.latitude);
+    const lon = Number(activeAlert.longitude);
+
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      return null;
+    }
+
+    const delta = 0.01;
+    const south = lat - delta;
+    const west = lon - delta;
+    const north = lat + delta;
+    const east = lon + delta;
+
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${west},${south},${east},${north}&layer=mapnik&marker=${lat},${lon}`;
+  };
+
+  const mapUrl = getAlertMapUrl();
 
   return (
     <div className="space-y-8">
@@ -155,6 +186,16 @@ const Dashboard = () => {
                   <p className="text-sm text-muted-foreground mt-1">
                     Location: {activeAlert.location_address}
                   </p>
+                )}
+                {mapUrl && (
+                  <div className="mt-3 h-64 rounded-md overflow-hidden border border-emergency/20 bg-muted">
+                    <iframe
+                      title="SOS location map"
+                      src={mapUrl}
+                      className="w-full h-full"
+                      loading="lazy"
+                    />
+                  </div>
                 )}
               </div>
               <Button
