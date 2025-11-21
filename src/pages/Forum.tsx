@@ -17,6 +17,9 @@ const Forum = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+  const [comments, setComments] = useState<Record<string, any[]>>({});
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -64,6 +67,24 @@ const Forum = () => {
     setPosts(data || []);
   };
 
+  const loadComments = async (postId: string) => {
+    const { data, error } = await supabase
+      .from("forum_comments")
+      .select("*")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error loading comments:", error);
+      return;
+    }
+
+    setComments((prev) => ({
+      ...prev,
+      [postId]: data || [],
+    }));
+  };
+
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session) return;
@@ -88,6 +109,41 @@ const Forum = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleToggleComments = async (postId: string) => {
+    const nextId = expandedPostId === postId ? null : postId;
+    setExpandedPostId(nextId);
+
+    if (nextId && !comments[nextId]) {
+      await loadComments(nextId);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent, postId: string) => {
+    e.preventDefault();
+    if (!session) return;
+
+    const content = commentInputs[postId]?.trim();
+    if (!content) return;
+
+    const { error } = await supabase.from("forum_comments").insert({
+      post_id: postId,
+      user_id: session.user.id,
+      content,
+    });
+
+    if (error) {
+      toast.error("Failed to add comment");
+      return;
+    }
+
+    setCommentInputs((prev) => ({
+      ...prev,
+      [postId]: "",
+    }));
+
+    await loadComments(postId);
   };
 
   const handleUpvote = async (postId: string, currentUpvotes: number) => {
@@ -198,6 +254,59 @@ const Forum = () => {
                 <p className="text-muted-foreground whitespace-pre-wrap">
                   {post.content}
                 </p>
+
+                <div className="mt-4 space-y-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleToggleComments(post.id)}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>
+                      {expandedPostId === post.id ? "Hide comments" : "View comments"}
+                    </span>
+                  </Button>
+
+                  {expandedPostId === post.id && (
+                    <div className="space-y-3 border-t pt-3 mt-2">
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {(comments[post.id] || []).length === 0 ? (
+                          <p className="text-xs text-muted-foreground">No comments yet. Be the first to share your thoughts.</p>
+                        ) : (
+                          (comments[post.id] || []).map((comment) => (
+                            <div key={comment.id} className="text-sm p-2 rounded-md bg-muted/60">
+                              <p className="text-muted-foreground whitespace-pre-wrap">
+                                {comment.content}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground mt-1">
+                                {new Date(comment.created_at).toLocaleString()}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      <form onSubmit={(e) => handleAddComment(e, post.id)} className="space-y-2">
+                        <Textarea
+                          placeholder="Add a comment..."
+                          rows={3}
+                          value={commentInputs[post.id] || ""}
+                          onChange={(e) =>
+                            setCommentInputs((prev) => ({
+                              ...prev,
+                              [post.id]: e.target.value,
+                            }))
+                          }
+                        />
+                        <Button type="submit" size="sm" className="ml-auto block">
+                          Post Comment
+                        </Button>
+                      </form>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))
