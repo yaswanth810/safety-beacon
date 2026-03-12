@@ -30,7 +30,7 @@ const Legal = () => {
   const filteredResources = resources.filter((resource) => {
     const matchesSearch =
       resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resource.content.toLowerCase().includes(searchTerm.toLowerCase());
+      (resource.content || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
       !selectedCategory || resource.category === selectedCategory;
     return matchesSearch && matchesCategory;
