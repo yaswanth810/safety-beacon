@@ -149,7 +149,7 @@ const Forum = () => {
   const handleUpvote = async (postId: string, currentUpvotes: number | null) => {
     const { error } = await supabase
       .from("forum_posts")
-      .update({ upvotes: currentUpvotes + 1 })
+      .update({ upvotes: (currentUpvotes || 0) + 1 })
       .eq("id", postId);
 
     if (error) {
