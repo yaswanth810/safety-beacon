@@ -246,7 +246,7 @@ const Forum = () => {
                     className="flex items-center gap-2"
                   >
                     <ThumbsUp className="w-4 h-4" />
-                    <span>{post.upvotes}</span>
+                    <span>{post.upvotes || 0}</span>
                   </Button>
                 </div>
               </CardHeader>
