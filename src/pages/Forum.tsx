@@ -146,7 +146,7 @@ const Forum = () => {
     await loadComments(postId);
   };
 
-  const handleUpvote = async (postId: string, currentUpvotes: number) => {
+  const handleUpvote = async (postId: string, currentUpvotes: number | null) => {
     const { error } = await supabase
       .from("forum_posts")
       .update({ upvotes: currentUpvotes + 1 })
